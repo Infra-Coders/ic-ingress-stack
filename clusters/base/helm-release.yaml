@@ -1,0 +1,39 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ingress-nginx-release
+  namespace: ingress-nginx
+spec:
+  interval: 15m
+  timeout: 5m
+  chart:
+    spec:
+      chart: nginx-ingress
+      sourceRef:
+        kind: HelmRepository
+        name: ingress-nginx
+      interval: 5m
+  releaseName: ingress-default
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  test:
+    enable: true
+  driftDetection:
+    mode: enabled
+    ignore:
+    - paths: ["/spec/replicas"]
+      target:
+        kind: Deployment
+  values:
+    controller:
+      replicaCount: 2
+# for now it's service port, if everything works it can be removed and by default Load Balancer will be used
+      service:
+        type: NodePort
+        nodePorts:
+          http: 30080
+          https: 30443
